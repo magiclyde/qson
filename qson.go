@@ -6,8 +6,8 @@
 package qson
 
 import (
-	"encoding/json"
 	"errors"
+	jsoniter "github.com/json-iterator/go"
 	"net/url"
 	"regexp"
 	"strings"
@@ -19,6 +19,8 @@ var (
 	ErrInvalidParam error = errors.New("qson: invalid url query param provided")
 
 	bracketSplitter *regexp.Regexp
+
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 func init() {
@@ -86,27 +88,19 @@ func queryToMap(param string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	pieces := bracketSplitter.Split(rawKey, -1)
+	// assume that bracket not exist to avoid using regexp.Split
+	exist := strings.Contains(rawKey, "[")
+	if !exist {
+		return buildQueryToMap(rawKey, rawValue)
+	}
+
+	pieces := bracketSplitter.Split(rawKey, -1) // expensive cost!
 	key := pieces[0]
 
 	// If len==1 then rawKey has no [] chars and we can just
 	// decode this as key=value into {key: value}
 	if len(pieces) == 1 {
-		var value interface{}
-		// First we try parsing it as an int, bool, null, etc
-		err = json.Unmarshal([]byte(rawValue), &value)
-		if err != nil {
-			// If we got an error we try wrapping the value in
-			// quotes and processing it as a string
-			err = json.Unmarshal([]byte("\""+rawValue+"\""), &value)
-			if err != nil {
-				// If we can't decode as a string we return the err
-				return nil, err
-			}
-		}
-		return map[string]interface{}{
-			key: value,
-		}, nil
+		return buildQueryToMap(key, rawValue)
 	}
 
 	// If len > 1 then we have something like a[b][c]=2
@@ -129,6 +123,33 @@ func queryToMap(param string) (map[string]interface{}, error) {
 		ret[key] = []interface{}{temp[""]}
 	}
 	return ret, nil
+}
+
+// buildQueryToMap turns something like a[b][c]=4 into
+//   map[string]interface{}{
+//     "a": map[string]interface{}{
+// 		  "b": map[string]interface{}{
+// 			  "c": 4,
+// 		  },
+// 	  },
+//   }
+func buildQueryToMap(rawKey, rawValue string) (map[string]interface{}, error) {
+	var value interface{}
+	// First we try parsing it as an int, bool, null, etc
+	err := json.Unmarshal(S2B(rawValue), &value)
+	if err != nil {
+		// If we got an error we try wrapping the value in
+		// quotes and processing it as a string
+		data := S2B(Concat("\"", rawValue, "\""))
+		err = json.Unmarshal(data, &value)
+		if err != nil {
+			// If we can't decode as a string we return the err
+			return nil, err
+		}
+	}
+	return map[string]interface{}{
+		rawKey: value,
+	}, nil
 }
 
 // buildNewKey will take something like:

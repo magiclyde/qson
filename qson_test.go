@@ -168,3 +168,17 @@ func TestEncodedAmpersand2(t *testing.T) {
 		}
 	}
 }
+
+var data []byte
+
+func BenchmarkToJSON(b *testing.B) {
+	var byt []byte
+	for n := 0; n < b.N; n++ {
+		// always record the result of ToJSON to prevent
+		// the compiler eliminating the function call.
+		byt, _ = ToJSON("a=xyz&b[c]=456")
+	}
+	// always store the result to a package level variable
+	// so the compiler cannot eliminate the Benchmark itself.
+	data = byt
+}

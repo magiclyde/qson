@@ -1,12 +1,8 @@
 # qson
 
-***WARNING** This isn't actively maintained, but it should work as a proof of concept for anyone who is interested in seeing how you might write a library like this for your own projects.*
+Convert URL query strings into JSON so that you can more easily parse them into structs/maps in Go. 
 
-Convert URL query strings into JSON so that you can more easily parse them into structs/maps in Go.
-
-I wrote this to help someone in the Gopher Slack, so it isn't really 100% complete but it should be stable enough to use in most production environments and work well as a starting point if you need something more custom.
-
-If you end up using the package, feel free to submit any bugs and feature requests and I'll try to get to those updated time permitting.
+forked from [joncalhoun/qson](https://github.com/joncalhoun/qson) 
 
 ## Usage
 
@@ -15,7 +11,7 @@ You can either turn a URL query param into a JSON byte array, or unmarshal that 
 Transforming the URL query param into a JSON byte array:
 
 ```go
-import "github.com/joncalhoun/qson"
+import "github.com/magiclyde/qson"
 
 func main() {
   b, err := qson.ToJSON("bar%5Bone%5D%5Btwo%5D=2&bar[one][red]=112")
@@ -30,7 +26,7 @@ func main() {
 Or unmarshalling directly into a Go object using JSON struct tags:
 
 ```go
-import "github.com/joncalhoun/qson"
+import "github.com/magiclyde/qson"
 
 type unmarshalT struct {
 	A string     `json:"a"`
@@ -58,3 +54,4 @@ func main() {
 ```
 
 To get a query string like in the two previous examples you can use the `RawQuery` field on the [net/url.URL](https://golang.org/pkg/net/url/#URL) type.
+
