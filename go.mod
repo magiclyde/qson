@@ -1,4 +1,4 @@
-module magiclyde/qson
+module github.com/magiclyde/qson
 
 go 1.14
 
