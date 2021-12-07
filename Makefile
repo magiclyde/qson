@@ -1,7 +1,7 @@
 # Use bash as shell (Note: Ubuntu now uses dash which doesn't support PIPESTATUS).
 SHELL := /bin/bash
 
-.PHPNY: benchmark
+.PHONY: benchmark
 benchmark:
 	@mkdir -p target/test
 	@mkdir -p target/report
@@ -17,11 +17,11 @@ benchmark:
 		tee >(go-junit-report > target/test/report.xml); \
 		test $${PIPESTATUS[0]} -eq 0
 
-.PHPNY: pprof_cpu
+.PHONY: pprof_cpu
 pprof_cpu: benchmark
 	go tool pprof target/report/cpu.prof
 
-.PHPNY: pprof_mem
+.PHONY: pprof_mem
 pprof_mem: benchmark
 	go tool pprof target/report/mem.prof
 
